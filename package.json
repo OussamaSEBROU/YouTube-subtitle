@@ -1,0 +1,31 @@
+{
+  "name": "youtube-subtitler-app",
+  "version": "1.0.0",
+  "description": "AI-powered YouTube subtitler with React, Node.js, and Gemini.",
+  "main": "server/server.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "build": "cd client && npm install && npm run build"
+  },
+  "keywords": [
+    "react",
+    "nodejs",
+    "gemini",
+    "youtube",
+    "subtitles"
+  ],
+  "author": "Your Name",
+  "license": "ISC",
+  "dependencies": {
+    "@google/generative-ai": "^0.1.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "youtube-captions-scraper": "^2.0.0"
+  },
+  "engines": {
+    "node": "18.x"
+  }
+}
+
+
