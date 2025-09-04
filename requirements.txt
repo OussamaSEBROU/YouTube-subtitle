@@ -1,5 +1,5 @@
 Flask
-youtube-dlp
+pytube
 google-generativeai
 python-dotenv
 
