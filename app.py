@@ -17,7 +17,9 @@ app = Flask(__name__, static_folder='client')
 
 # Initialize the Gemini API client.
 # The API key is loaded from the environment variables.
-genai_model = GenerativeModel(model_name="gemini-2.0-flash", api_key=os.getenv("GEMINI_API_KEY"))
+# FIX: The `api_key` argument is passed directly to the GenerativeModel class,
+# not the constructor.
+genai_model = GenerativeModel("gemini-2.0-flash")
 
 # API endpoint for fetching and generating subtitles.
 @app.route('/api/subtitles', methods=['POST'])
