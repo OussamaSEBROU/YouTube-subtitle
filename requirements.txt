@@ -1,0 +1,5 @@
+Flask
+youtube-dlp
+google-generativeai
+python-dotenv
+
