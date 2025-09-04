@@ -5,7 +5,7 @@
 
 import os
 from flask import Flask, request, jsonify, send_from_directory
-from youtube_dlp import YoutubeDL
+from pytube import YouTube
 from google.generativeai import GenerativeModel
 from dotenv import load_dotenv
 
@@ -33,17 +33,10 @@ def get_subtitles():
         return jsonify({"error": "Video URL and language are required."}), 400
 
     try:
-        # Use yt-dlp to extract video metadata.
-        ydl_opts = {
-            'quiet': True,
-            'skip_download': True,
-            'get_url': True,
-            'format': 'bestaudio/best'
-        }
-        with YoutubeDL(ydl_opts) as ydl:
-            info_dict = ydl.extract_info(video_url, download=False)
-            video_title = info_dict.get('title', 'Untitled Video')
-            video_duration_seconds = info_dict.get('duration')
+        # Use pytube to get video metadata.
+        yt = YouTube(video_url)
+        video_title = yt.title
+        video_duration_seconds = yt.length
 
         print(f"Processing video: \"{video_title}\" (Duration: {video_duration_seconds}s)")
 
@@ -57,7 +50,7 @@ def get_subtitles():
         # Placeholder for the transcribed text. In a real scenario, this
         # would come from an audio-to-text service.
         english_transcript_placeholder = """
-            Hello everyone and welcome to this video tutorial. In this segment, we will be discussing the fundamental concepts of full-stack web development. First, we will cover the basics of a client-server architecture. On the client side, we use languages like HTML, CSS, and JavaScript. On the server side, we use frameworks like Node.js and Express to handle requests and data. This separation is crucial for building scalable and maintainable applications. Thank you for watching and stay tuned for more!
+            Hello everyone and welcome to this video tutorial. In this segment, we will be discussing the fundamental concepts of full-stack web development. First, we will cover the basics of a client-server architecture. On the client side, we use languages like HTML, CSS, and JavaScript. On the server side, we use frameworks like Python and Flask to handle requests and data. This separation is crucial for building scalable and maintainable applications. Thank you for watching and stay tuned for more!
         """
 
         # The prompt to Gemini for translation.
