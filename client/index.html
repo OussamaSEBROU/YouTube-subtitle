@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Subtitles for YouTube</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body>
+    <div id="root" class="min-h-screen bg-gray-100 flex flex-col items-center p-6 sm:p-10 transition-all duration-300">
+        <header class="w-full max-w-4xl text-center py-8">
+            <h1 class="text-4xl sm:text-5xl font-bold text-gray-800 mb-2">AI Subtitles for YouTube</h1>
+            <p class="text-lg text-gray-600">
+                Paste a YouTube link to get accurate, context-aware subtitles in the language of your choice, powered by Gemini AI.
+            </p>
+        </header>
+
+        <main class="w-full max-w-4xl bg-white rounded-lg shadow-xl p-6 sm:p-8 space-y-8">
+            <!-- Input Section -->
+            <div class="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-4">
+                <input
+                    type="text"
+                    id="youtubeLink"
+                    class="flex-1 w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                    placeholder="Paste YouTube video link here..."
+                />
+                <select
+                    id="languageSelect"
+                    class="w-full sm:w-auto px-4 py-3 border-2 border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                >
+                    <option value="en">English</option>
+                    <option value="es">Spanish</option>
+                    <option value="fr">French</option>
+                    <option value="de">German</option>
+                    <option value="ja">Japanese</option>
+                    <option value="zh">Chinese</option>
+                </select>
+                <button
+                    id="generateButton"
+                    class="w-full sm:w-auto px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                    Generate Subtitles
+                </button>
+            </div>
+
+            <!-- Status and Error Messages -->
+            <div id="statusContainer" class="hidden">
+                <div id="errorMessage" class="w-full bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-lg" role="alert"></div>
+                <div id="loadingMessage" class="w-full text-center text-gray-500 hidden">
+                    <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-gray-400 border-t-blue-500"></div>
+                    <p class="mt-2">Generating subtitles, please wait...</p>
+                </div>
+            </div>
+
+            <!-- Video Player -->
+            <div id="videoContainer" class="aspect-w-16 aspect-h-9 w-full bg-gray-200 rounded-lg overflow-hidden shadow-lg hidden">
+                <iframe id="youtubeIframe" class="w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen title="YouTube video player"></iframe>
+            </div>
+
+            <!-- Subtitle Display -->
+            <div id="subtitlesContainer" class="mt-8 hidden">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Subtitles</h2>
+                <div id="subtitlesDisplay" class="bg-gray-50 p-6 rounded-lg border border-gray-200 max-h-96 overflow-y-auto"></div>
+            </div>
+        </main>
+
+        <footer class="mt-10 text-center text-gray-500 text-sm">
+            <p>&copy; 2025 AI Subtitles App. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <script>
+        document.getElementById('generateButton').addEventListener('click', async () => {
+            const youtubeLink = document.getElementById('youtubeLink').value;
+            const language = document.getElementById('languageSelect').value;
+            const statusContainer = document.getElementById('statusContainer');
+            const errorMessage = document.getElementById('errorMessage');
+            const loadingMessage = document.getElementById('loadingMessage');
+            const videoContainer = document.getElementById('videoContainer');
+            const youtubeIframe = document.getElementById('youtubeIframe');
+            const subtitlesContainer = document.getElementById('subtitlesContainer');
+            const subtitlesDisplay = document.getElementById('subtitlesDisplay');
+
+            // Reset UI state
+            errorMessage.textContent = '';
+            statusContainer.classList.add('hidden');
+            loadingMessage.classList.add('hidden');
+            videoContainer.classList.add('hidden');
+            subtitlesContainer.classList.add('hidden');
+            subtitlesDisplay.innerHTML = '';
+
+            const urlRegex = /(?:https?:\/\/)?(?:www\.)?youtu(?:be\.com\/watch\?v=|\.be\/)([^&?\s]+)/;
+            const match = youtubeLink.match(urlRegex);
+
+            if (!match) {
+                errorMessage.textContent = 'Please enter a valid YouTube video URL.';
+                statusContainer.classList.remove('hidden');
+                return;
+            }
+
+            const videoId = match[1];
+            youtubeIframe.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+            videoContainer.classList.remove('hidden');
+
+            loadingMessage.classList.remove('hidden');
+            statusContainer.classList.remove('hidden');
+
+            try {
+                const response = await fetch('/api/subtitles', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: youtubeLink, language: language }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to fetch subtitles.');
+                }
+
+                subtitlesContainer.classList.remove('hidden');
+                data.subtitles.forEach(subtitle => {
+                    const p = document.createElement('p');
+                    p.className = 'text-gray-700 leading-relaxed mb-2';
+                    p.textContent = subtitle.text;
+                    subtitlesDisplay.appendChild(p);
+                });
+
+            } catch (err) {
+                console.error('API Error:', err);
+                errorMessage.textContent = 'An error occurred while fetching subtitles. Please try again.';
+                statusContainer.classList.remove('hidden');
+            } finally {
+                loadingMessage.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
+
